@@ -1,13 +1,19 @@
 package com.example.plainsofprimus
 
+import android.app.Activity.RESULT_OK
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.Toast
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import com.example.plainsofprimus.model.Character
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -23,13 +29,15 @@ import com.google.firebase.ktx.Firebase
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import kotlinx.android.synthetic.main.fragment_login.*
-import kotlin.math.log
+
 
 class LoginFragment : Fragment() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var auth: FirebaseAuth
     private lateinit var signInButton: SignInButton
     private lateinit var signOutButton: Button
+    private lateinit var takePhoto: Button
+    private lateinit var profileImage: ImageView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,6 +57,8 @@ class LoginFragment : Fragment() {
 
         signInButton = view.findViewById(R.id.sign_in_button)
         signOutButton = view.findViewById(R.id.sign_out_button)
+        takePhoto = view.findViewById(R.id.take_photo)
+        profileImage = view.findViewById(R.id.profile_image)
 
         signInButton.setOnClickListener {
             val signInIntent = googleSignInClient.signInIntent
@@ -59,6 +69,10 @@ class LoginFragment : Fragment() {
             auth.signOut()
             googleSignInClient.signOut()
             changeFragment()
+        }
+
+        takePhoto.setOnClickListener {
+            dispatchTakePictureIntent()
         }
 
         return view
@@ -82,6 +96,15 @@ class LoginFragment : Fragment() {
         }
     }
 
+    private fun dispatchTakePictureIntent() {
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        try {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+        } catch (e: ActivityNotFoundException) {
+            // display error state to the user
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -97,6 +120,10 @@ class LoginFragment : Fragment() {
                 // Google Sign In failed, update UI appropriately
                 Log.w(TAG, "Google sign in failed", e)
             }
+        } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            val imageBitmap = data?.extras?.get("data") as Bitmap
+            Log.d(TAG, imageBitmap.toString())
+            profileImage.setImageBitmap(imageBitmap)
         }
     }
 
@@ -158,5 +185,6 @@ class LoginFragment : Fragment() {
     companion object {
         private const val TAG = "LoginFragment"
         private const val RC_SIGN_IN = 9001
+        private const val REQUEST_IMAGE_CAPTURE = 1
     }
 }
