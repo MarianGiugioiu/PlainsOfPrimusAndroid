@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "813518423288",
+    "project_id": "plainsofprimusmobile",
+    "storage_bucket": "plainsofprimusmobile.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:813518423288:android:1423f8a040ed4c31dfa70d",
+        "android_client_info": {
+          "package_name": "com.example.plainsofprimus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "813518423288-4kk89c66kk0gtq345em2e7sf26mjv0oe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.plainsofprimus",
+            "certificate_hash": "b6fbddef2c6991cf4dee61fdb80a73a4741ba6e0"
+          }
+        },
+        {
+          "client_id": "813518423288-lp1mk5bk46m0vo08etrvr4d67j876qdo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzAiAT3y381wgnHZj9qth2oMm2HiCFx38"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "813518423288-lp1mk5bk46m0vo08etrvr4d67j876qdo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
