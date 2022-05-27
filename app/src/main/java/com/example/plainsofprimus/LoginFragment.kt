@@ -7,19 +7,19 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Base64
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.widget.AppCompatButton
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
 import com.example.plainsofprimus.model.Character
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.SignInButton
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -29,15 +29,20 @@ import com.google.firebase.ktx.Firebase
 import io.realm.Realm
 import io.realm.RealmConfiguration
 import kotlinx.android.synthetic.main.fragment_login.*
+import java.io.ByteArrayOutputStream
 
 
 class LoginFragment : Fragment() {
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var auth: FirebaseAuth
-    private lateinit var signInButton: SignInButton
-    private lateinit var signOutButton: Button
-    private lateinit var takePhoto: Button
+    private var character: Character? = null
+    private lateinit var signInButton: AppCompatButton
+    private lateinit var signOutButton: AppCompatButton
+    private lateinit var takePhoto: AppCompatButton
     private lateinit var profileImage: ImageView
+    private lateinit var profileUsername: TextView
+    private lateinit var profileLayout: ConstraintLayout
+    private lateinit var realm: Realm
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,10 +60,35 @@ class LoginFragment : Fragment() {
 
         auth = Firebase.auth
 
+        loadData()
+
+        initViews(view)
+
+        return view
+    }
+
+    private fun loadData() {
+        val currentUser = auth.currentUser
+        val config = RealmConfiguration.Builder()
+            .name("primus.realm").build()
+        realm = Realm.getInstance(config)
+
+        if (currentUser != null) {
+            character =
+                realm.where(Character::class.java).equalTo("username", currentUser.email)
+                    .findFirst()
+        }
+    }
+
+    private fun initViews(view: View) {
+        val currentUser = auth.currentUser
+
         signInButton = view.findViewById(R.id.sign_in_button)
         signOutButton = view.findViewById(R.id.sign_out_button)
         takePhoto = view.findViewById(R.id.take_photo)
         profileImage = view.findViewById(R.id.profile_image)
+        profileUsername = view.findViewById(R.id.profile_username)
+        profileLayout = view.findViewById(R.id.profile_layout)
 
         signInButton.setOnClickListener {
             val signInIntent = googleSignInClient.signInIntent
@@ -75,24 +105,27 @@ class LoginFragment : Fragment() {
             dispatchTakePictureIntent()
         }
 
-        return view
-    }
-
-    override fun onStart() {
-        super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
-        initViews()
-    }
-
-    fun initViews() {
-        val currentUser = auth.currentUser
         if (currentUser == null) {
             Log.w(TAG, "user not signed in..")
             signInButton.visibility = View.VISIBLE
             signOutButton.visibility = View.GONE
         } else {
+            profileLayout.visibility = View.VISIBLE
             signInButton.visibility = View.GONE
             signOutButton.visibility = View.VISIBLE
+            profileImage.visibility = View.VISIBLE
+            takePhoto.visibility = View.VISIBLE
+
+            if (character != null) {
+                profileUsername.text = character!!.username
+                if (!character!!.image.contentEquals(byteArrayOf())) {
+                    val bitmap = byteArrayToBitmap(character!!.image)
+                    profileImage.setImageBitmap(bitmap)
+                } else {
+                    profileImage.setBackgroundResource(R.drawable.avatar)
+                }
+            }
+
         }
     }
 
@@ -103,6 +136,18 @@ class LoginFragment : Fragment() {
         } catch (e: ActivityNotFoundException) {
             // display error state to the user
         }
+    }
+
+    private fun bitmapToByteArray(bitmap: Bitmap):ByteArray{
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 10, stream)
+        return stream.toByteArray()
+    }
+
+
+    // extension function to convert byte array to bitmap
+    private fun byteArrayToBitmap(byteArray: ByteArray):Bitmap{
+        return BitmapFactory.decodeByteArray(byteArray,0,byteArray.size)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -122,8 +167,20 @@ class LoginFragment : Fragment() {
             }
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as Bitmap
-            Log.d(TAG, imageBitmap.toString())
             profileImage.setImageBitmap(imageBitmap)
+            val byteArray = bitmapToByteArray(imageBitmap)
+
+            if (auth.currentUser != null) {
+                val character =
+                    realm.where(Character::class.java).equalTo("username", auth.currentUser!!.email)
+                        .findFirst()
+
+                if (character != null) {
+                    realm.beginTransaction()
+                    character.image = byteArray
+                    realm.commitTransaction()
+                }
+            }
         }
     }
 
@@ -148,10 +205,6 @@ class LoginFragment : Fragment() {
         if (user == null) {
             return
         }
-
-        val config = RealmConfiguration.Builder()
-            .name("primus.realm").build()
-        val realm = Realm.getInstance(config)
 
         val character = realm.where(Character::class.java).equalTo("username", user.email).findFirst()
         if (character == null) {

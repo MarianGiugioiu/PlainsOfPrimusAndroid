@@ -1,19 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    >
     <item
         android:id="@+id/home"
+        android:icon="@drawable/home"
         android:title="Home" />
     <item
         android:id="@+id/character"
+        android:icon="@drawable/character"
         android:title="Character" />
     <item
         android:id="@+id/weapons"
+        android:icon="@drawable/damage"
         android:title="Weapons" />
     <item
         android:id="@+id/armors"
+        android:icon="@drawable/armor"
         android:title="Armors" />
     <item
-        android:id="@+id/login"
-        android:title="Login" />
+        android:id="@+id/account"
+        android:icon="@drawable/avatar"
+        android:title="Account" />
 </menu>

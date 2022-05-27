@@ -11,6 +11,8 @@ open class Character(): RealmObject() {
 
     var username: String? = null
 
+    var image: ByteArray = byteArrayOf()
+
     var name: String? = null
 
     var level: Int? = null
