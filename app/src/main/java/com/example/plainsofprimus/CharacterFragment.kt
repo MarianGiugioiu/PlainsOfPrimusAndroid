@@ -144,11 +144,13 @@ class CharacterFragment : Fragment() {
             sendScreenshot.setOnClickListener {
                 changeCharacterName.visibility = View.GONE
                 changeCharacterLevel.visibility = View.GONE
+                sendScreenshot.visibility = View.GONE
 
                 val bitmap: Bitmap = takeScreenShot(view)
 
                 changeCharacterName.visibility = View.VISIBLE
                 changeCharacterLevel.visibility = View.VISIBLE
+                sendScreenshot.visibility = View.VISIBLE
 
                 shareScreenshot(bitmap)
             }
